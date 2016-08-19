@@ -103,60 +103,24 @@ echo '</div>';
 
 
 //####################################
-$hola = $DB->get_records('feedback_value',array('item'=>1),null,'id, value');
-$options = $DB->get_records('feedback_item',array('position'=>1),null,'id,presentation');
+$questionid = $DB->get_records('feedback_item',array(),null,'id');
 
 
-foreach ($options as $key => $value){
+foreach ($questionid as $key=>$value) {
+    //echo $value->id . "</br>";
+    // etiquetas de pregunta
+    //$espacio = 0;
 
-    $data=explode('|', $value->presentation);
-}
+    $questions = $DB->get_records('feedback_item', array('id' => $value->id), null, 'id, name');
+    $data = array();
+    foreach ($questions as $key => $value) {
 
-
-$datas=array();
-foreach ($hola as $key => $value){
-    //print_r(explode('|', $key));
-    //$data=explode('|', $value->presentation);
-    //echo $key . '<br>';
-    //array_push($data,$key);
-    array_push($datas,$value->value);
-}
-
-$options = $DB->get_records('feedback_item',array('position'=>1),null,'id,presentation');
-foreach ($options as $key => $value){
-
-    $data=explode('|', $value->presentation);
-}
-
-$datalength=sizeof($data);
-
-echo 'el largo es ' . $datalength;
-
-$conjunto=array();
-do{
-    $suma=0;
-    foreach ($datas as $key=>$value) {
-        $contador=0;
-        if ($value==$datalength) {
-            $contador++;
-        }
-        $suma+=$contador;
+       array_push($data, $value->name);
     }
-    array_push($conjunto,$suma);
-    $datalength--;
-} while ( $datalength > 0);
+    print_r($data);
 
-//$impr = $hola['regunta 1']->name;
+}
 
-echo "<pre>";
-//print_r($hola);
-print_r($datas);
-print_r($conjunto);
-
-
-//print_r($hola2);
-echo "</pre>";
-die();
 
 
 
