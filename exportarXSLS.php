@@ -11,12 +11,6 @@ require_once("../../config.php");
 
 global $DB;
 
-
-
-
-
-
-
 $phpexcel = new PHPExcel();
 
 $phpexcel->setActiveSheetIndex(0);
@@ -24,40 +18,77 @@ $sheet = $phpexcel->getActiveSheet();
 
 
 
+//##############################==REPORTE POR PREGUNTA==###########################################
+$questionid = $DB->get_records('feedback_item',array(),null,'id');
 
+$espacio = 0;
+foreach ($questionid as $key=>$value) {
 
-// etiquetas de pregunta
-$questions = $DB->get_records('feedback_item',array('position'=>1),null,'id, name');
+    //etiquetas preguntas
+    $questions = $DB->get_records('feedback_item', array('id' => $value->id), null, 'id, name');
+    $data = array();
+    foreach ($questions as $key => $value) {
+        array_push($data, $value->name);
+    }
 
-$data=array();
-foreach ($questions as $key => $value){
-    array_push($data,$value->name);
-}
-$row=1;
+    $row=$espacio+1;
+    foreach($data as $point) {
+        $sheet->setCellValueByColumnAndRow(0, $row++, $point);
 
-foreach($data as $point) {
-    $sheet->setCellValueByColumnAndRow(0, $row++, $point);
-}
+    }
 
+    //etiquetas de opciones
+    $options = $DB->get_records('feedback_item',array('id'=>$value->id),null,'id,presentation');
+    foreach ($options as $key => $value){
 
-//etiquetas de opciones
-$options = $DB->get_records('feedback_item',array('position'=>1),null,'id,presentation');
-foreach ($options as $key => $value){
+        $data2=explode('|', $value->presentation);
+    }
+    //elimina saltos de linea tabulaciones y caracteres especiales -> mberegi_replace("[\n|\r|\n\r|\t||\x0B]", "",$string);
+    $row = $espacio+2;
+    foreach($data2 as $point) {
+        $sheet->setCellValueByColumnAndRow(1, $row++, mberegi_replace("[\n|\r|\n\r|\t||\x0B|>>>>>]", "",$point));
+    }
 
-    $data=explode('|', $value->presentation);
-}
+    //cantidad de veces marcados
+    $datalength=sizeof($data2);
+    $nespacios=$datalength;
+    $values = $DB->get_records('feedback_value',array('item'=>$value->id),null,'id, value');
+    $datas=array();
+    foreach ($values as $key => $value){
+        array_push($datas,$value->value);
+    }
+    $valores=array();
+    do{
+        $suma=0;
+        foreach ($datas as $key=>$value) {
+            $contador=0;
+            if ($value==$datalength) {
+                $contador++;
+            }
+            $suma+=$contador;
+        }
+        array_push($valores,$suma);
+        $datalength--;
+    } while ( $datalength > 0);
 
-//elimina saltos de linea tabulaciones y caracteres especiales -> mberegi_replace("[\n|\r|\n\r|\t||\x0B]", "",$string);
+    $valores=array_reverse($valores);
+    $row = $espacio+2;
+    foreach($valores as $point) {
+        $sheet->setCellValueByColumnAndRow(2, $row++, $point);
+      }
 
-$row = 2;
-foreach($data as $point) {
-$sheet->setCellValueByColumnAndRow(1, $row++, mberegi_replace("[\n|\r|\n\r|\t||\x0B]", "",$point));
-}
+$n1=$espacio+1;
+$n2=$espacio+15;
+$dato1='E'. $n1;
+$dato2='L' . $n2;
+$sheet->setCellValueByColumnAndRow(1, $n1, 'Opciones');
+$sheet->setCellValueByColumnAndRow(2, $n1, 'Veces marcados');
+$dato3='Worksheet!B'. ($espacio+2) .':B'. ($espacio+1+$nespacios);
+$dato4='Worksheet!C'. ($espacio+2) .':C'. ($espacio+1+$nespacios);
 
+$categories = new PHPExcel_Chart_DataSeriesValues('String', $dato3);
+$values = new PHPExcel_Chart_DataSeriesValues('String', $dato4);
 
-
-$values = new PHPExcel_Chart_DataSeriesValues('String', 'Worksheet!$C$1:$C$15');
-$categories = new PHPExcel_Chart_DataSeriesValues('String', 'Worksheet!$B$1:$B$15');
 
 $series = new PHPExcel_Chart_DataSeries(
 PHPExcel_Chart_DataSeries::TYPE_BARCHART,       // plotType
@@ -71,15 +102,19 @@ $series->setPlotDirection(PHPExcel_Chart_DataSeries::DIRECTION_HORIZONTAL);
 
 $layout = new PHPExcel_Chart_Layout();
 $plotarea = new PHPExcel_Chart_PlotArea($layout, array($series));
-$xTitle = new PHPExcel_Chart_Title('xAxisLabel');
-$yTitle = new PHPExcel_Chart_Title('yAxisLabel');
+$xTitle = new PHPExcel_Chart_Title('Respuestas');
+$yTitle = new PHPExcel_Chart_Title('');
 
 $chart = new PHPExcel_Chart('sample', null, null, $plotarea, true,0,$xTitle,$yTitle);
 
-$chart->setTopLeftPosition('A1');
-$chart->setBottomRightPosition('H15');
+$chart->setTopLeftPosition($dato1);
+$chart->setBottomRightPosition($dato2);
 
 $sheet->addChart($chart);
+
+    $espacio+=$nespacios+14;
+}
+//########################################################################################
 
 $writer = PHPExcel_IOFactory::createWriter($phpexcel, 'Excel2007');
 $writer->setIncludeCharts(TRUE);

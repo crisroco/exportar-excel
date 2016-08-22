@@ -100,42 +100,29 @@ if ($check_anonymously) {
                                     'feedback', '', '', 3);
 }
 echo '</div>';
+echo '<br /><div class="buttons">';
+echo $OUTPUT->single_button(new moodle_url('/mod/feedback/exportarXSLS.php'), "Exportar a excel");
+
+//####################################
+$questionid = $DB->get_records('feedback_item',array(),null,'id');
 
 
+foreach ($questionid as $key=>$value) {
+    //echo $value->id . "</br>";
+    // etiquetas de pregunta
+    //$espacio = 0;
 
-$hola = $DB->get_records('feedback_value',array('item'=>1),null,'id, value');
-$options = $DB->get_records('feedback_item',array('position'=>1),null,'id,presentation');
+    $questions = $DB->get_records('feedback_item', array('id' => $value->id), null, 'id, name');
+    $data = array();
+    foreach ($questions as $key => $value) {
 
+       array_push($data, $value->name);
+    }
+    print_r($data);
 
-foreach ($options as $key => $value){
-
-    $data=explode('|', $value->presentation);
 }
 
 
-$datas=array();
-foreach ($hola as $key => $value){
-    //print_r(explode('|', $key));
-    //$data=explode('|', $value->presentation);
-    //echo $key . '<br>';
-    //array_push($data,$key);
-    array_push($datas,$value->value);
-}
 
 
-
-
-//$impr = $hola['regunta 1']->name;
-
-echo "<pre>";
-//print_r($hola);
-print_r($datas);
-
-//print_r($hola2);
-echo "</pre>";
-die();
-
-
-
-echo $OUTPUT->footer();
-
+//echo $OUTPUT->footer();
