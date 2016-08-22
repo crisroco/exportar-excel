@@ -18,16 +18,18 @@ $sheet = $phpexcel->getActiveSheet();
 
 
 
+$encuesta=$DB->get_record('course_modules',array('id'=>$_GET['id']),'id,instance');
+
 //##############################==REPORTE POR PREGUNTA==###########################################
-$questionid = $DB->get_records('feedback_item',array(),null,'id');
+$questionid = $DB->get_records('feedback_item',array('feedback'=>$encuesta->instance),null,'id,name');
 
 $espacio = 0;
 foreach ($questionid as $key=>$value) {
 
     //etiquetas preguntas
-    $questions = $DB->get_records('feedback_item', array('id' => $value->id), null, 'id, name');
+    //$questions = $DB->get_records('feedback_item', array('id' => $value->id), null, 'id, name');
     $data = array();
-    foreach ($questions as $key => $value) {
+    foreach ($questionid as $key => $value) {
         array_push($data, $value->name);
     }
 

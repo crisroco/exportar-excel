@@ -101,7 +101,10 @@ if ($check_anonymously) {
 }
 echo '</div>';
 echo '<br /><div class="buttons">';
-echo $OUTPUT->single_button(new moodle_url('/mod/feedback/exportarXSLS.php'), "Exportar a excel");
+echo '<a href="' . new moodle_url('/mod/feedback/exportarXSLS.php?id=' . $id) . '">tmrrrrrrrrrrr</a>';
+//echo $OUTPUT->single_button(new moodle_url("/mod/feedback/exportarXSLS.php?id=$id"), "''");
+//echo $OUTPUT->single_button(new moodle_url('/mod/feedback/exportarXSLS.php'), "Exportar a excel");
+echo '</div>';
 
 //####################################
 $questionid = $DB->get_records('feedback_item',array(),null,'id');
@@ -122,6 +125,9 @@ foreach ($questionid as $key=>$value) {
 
 }
 
+echo  html_writer::start_tag('div');
+echo  html_writer::link(new moodle_url('/mod/feedback/exportarXSLS.php?id=' . $id),'Exportar a excel',array('class'=>'btn btn-default' , 'target' => '_blank'));
+echo html_writer::end_tag('div');
 
 
 
