@@ -121,9 +121,19 @@ foreach ($questionid as $key=>$value) {
 
        array_push($data, $value->name);
     }
+    echo "</br>";
     print_r($data);
 
 }
+
+$encuesta=$DB->get_record('course_modules',array('id'=>$_GET['id']),'id,instance');
+echo "</br>";
+print_r($encuesta);
+echo "</br>";
+$lala= $encuesta->instance;
+echo $lala;
+
+
 
 echo  html_writer::start_tag('div');
 echo  html_writer::link(new moodle_url('/mod/feedback/exportarXSLS.php?id=' . $id),'Exportar a excel',array('class'=>'btn btn-default' , 'target' => '_blank'));

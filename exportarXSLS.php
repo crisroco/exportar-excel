@@ -1,24 +1,33 @@
 <?php
+include_once 'Classes/PHPExcel.php';
+require_once("../../config.php");
+global $DB;
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
-header('Content-Disposition: attachment;filename="graph.xlsx"');
+$hoy =date("j_F_Y");
+$encuesta=$DB->get_record('course_modules',array('id'=>$_GET['id']),'id,instance');
+$other=$DB->get_record('feedback',array('id'=>$encuesta->instance),'id,name');
+$nombre=$other->name;
+
+header("Content-Disposition: attachment;filename=Reporte_$nombre $hoy.xlsx");
 header('Cache-Control: max-age=0');
 
-include_once 'Classes/PHPExcel.php';
 
-require_once("../../config.php");
-
-global $DB;
 
 $phpexcel = new PHPExcel();
 
 $phpexcel->setActiveSheetIndex(0);
 $sheet = $phpexcel->getActiveSheet();
+//MODIFICIONES======================
+$sheet->getColumnDimension('B')->setAutoSize(true);
+$sheet->getColumnDimension('C')->setAutoSize(true);
+$sheet->getStyle('B1:C400')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+//MODIFICIONES======================
 
 
-
-$encuesta=$DB->get_record('course_modules',array('id'=>$_GET['id']),'id,instance');
+//$encuesta=$DB->get_record('course_modules',array('id'=>$_GET['id']),'id,instance');
 
 //##############################==REPORTE POR PREGUNTA==###########################################
 $questionid = $DB->get_records('feedback_item',array('feedback'=>$encuesta->instance),null,'id,name');
@@ -34,9 +43,17 @@ foreach ($questionid as $key=>$value) {
     }
 
     $row=$espacio+1;
-    foreach($data as $point) {
-        $sheet->setCellValueByColumnAndRow(0, $row++, $point);
 
+    $styleArray = array(
+        'font'  => array(
+            'bold'  => true,
+            'color' => array('rgb' => '808080'),
+            'size'  => 13,
+            'name'  => 'Verdana'
+        ));
+    $sheet->getStyle("B$row:C$row")->applyFromArray($styleArray);
+    foreach($data as $point) {
+        $sheet->setCellValueByColumnAndRow(1, $row++, $point);
     }
 
     //etiquetas de opciones
@@ -44,10 +61,16 @@ foreach ($questionid as $key=>$value) {
     foreach ($options as $key => $value){
 
         $data2=explode('|', $value->presentation);
+
     }
     //elimina saltos de linea tabulaciones y caracteres especiales -> mberegi_replace("[\n|\r|\n\r|\t||\x0B]", "",$string);
     $row = $espacio+2;
     foreach($data2 as $point) {
+
+        if (strpos($point,">>>>>")>0){
+            $point=substr($point, 1);
+        }
+
         $sheet->setCellValueByColumnAndRow(1, $row++, mberegi_replace("[\n|\r|\n\r|\t||\x0B|>>>>>]", "",$point));
     }
 
@@ -83,8 +106,9 @@ $n1=$espacio+1;
 $n2=$espacio+15;
 $dato1='E'. $n1;
 $dato2='L' . $n2;
-$sheet->setCellValueByColumnAndRow(1, $n1, 'Opciones');
-$sheet->setCellValueByColumnAndRow(2, $n1, 'Veces marcados');
+
+
+$sheet->setCellValueByColumnAndRow(2, $n1, 'Cantidad de veces marcada');
 $dato3='Worksheet!B'. ($espacio+2) .':B'. ($espacio+1+$nespacios);
 $dato4='Worksheet!C'. ($espacio+2) .':C'. ($espacio+1+$nespacios);
 
